@@ -1,0 +1,80 @@
+version: '3'
+
+services:
+    # Email Server 0
+    outbox0:
+        build: ./box
+        volumes:
+            - ./box:/app
+        env_file:
+            - ./here.env
+    inbox0:
+        build: ./box
+        volumes:
+            - ./box:/app
+        env_file:
+            - ./here.env
+    msa0:
+        build: ./msa
+        expose:
+            - 8000
+        ports:
+            - 8000:8000
+        volumes:
+            - ./msa:/app
+        links:
+            - outbox0
+            - inbox0
+        env_file:
+            - ./here.env
+    mta0:
+        build: ./mta
+        volumes:
+            - ./mta:/app
+        links:
+            - msa0
+        env_file: 
+            - ./here.env
+    # Email Server 1 - example additional server
+    outbox1:
+        build: ./box
+        volumes:
+            - ./box:/app
+        env_file:
+            - ./there.env
+    inbox1:
+        build: ./box
+        volumes:
+            - ./box:/app
+        env_file:
+            - ./there.env
+    msa1:
+        build: ./msa
+        expose:
+            - 8001
+        ports:
+            - 8001:8000
+        volumes:
+            - ./msa:/app
+        links:
+            - outbox1
+            - inbox1
+        env_file: 
+            - there.env
+    mta1:
+        build: ./mta
+        volumes:
+            - ./mta:/app
+        links:
+            - msa1
+        env_file: 
+            - there.env
+    # Bluebook Server
+    bluebook:
+        build: ./bluebook
+        volumes:
+            - ./bluebook:/app
+        links:
+            - mta0
+            - mta1
+    
